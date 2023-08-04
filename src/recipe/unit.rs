@@ -4,7 +4,7 @@
 //"Precise" and "Imprecise"- Precise would be measured units such as cups, oz, etc
 //Imprecise would be for "pinches" and "wholes"
 //Would make it possible to seal up the API against edge cases.
-#[derive(PartialEq, Clone, Debug, PartialOrd)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, PartialOrd)]
 pub enum Unit {
     //Used for "and a pinch of salt" type ingredients, not enough for even a tsp.
     Pinch,
@@ -46,11 +46,18 @@ impl Unit {
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Measure {
-    quantity: f32,
-    unit: Unit,
+    pub(crate) quantity: f32,
+    pub(crate) unit: Unit,
 }
 
 impl Measure {
+    pub fn new(unit: Unit) -> Measure {
+        Self {
+            quantity: 0.0,
+            unit
+        }
+    }
+ 
     pub fn convert_to(&self, unit: Unit) -> Measure {
         if self.unit == unit || self.unit == Unit::Whole {
             return self.clone();

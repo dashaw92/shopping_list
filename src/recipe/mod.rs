@@ -1,19 +1,20 @@
 #![allow(dead_code)]
 
-use self::unit::Measure;
-mod unit;
+use self::unit::{Measure, Unit};
+pub mod unit;
 
 #[derive(Debug, Clone)]
 pub struct Recipe {
-    name: String,
-    ingredients: Vec<Ingredient>,
-    tags: Option<Vec<Tag>>,
+    pub(crate) name: String,
+    pub(crate) ingredients: Vec<Ingredient>,
+    pub(crate) tags: Option<Vec<Tag>>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Ingredient {
-    name: String,
-    measure: Measure,
+    pub(crate) name: String,
+    pub(crate) measure: Measure,
+    pub(crate) primary_unit: Unit,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq)]
