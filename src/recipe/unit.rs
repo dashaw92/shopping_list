@@ -4,7 +4,7 @@
 //"Precise" and "Imprecise"- Precise would be measured units such as cups, oz, etc
 //Imprecise would be for "pinches" and "wholes"
 //Would make it possible to seal up the API against edge cases.
-#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, PartialOrd)]
+#[derive(PartialEq, Eq, Hash, Copy, Clone, Debug, PartialOrd, Serialize, Deserialize)]
 pub enum Unit {
     //Used for "and a pinch of salt" type ingredients, not enough for even a tsp.
     Pinch,
@@ -44,7 +44,7 @@ impl Unit {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct Measure {
     pub(crate) quantity: f32,
     pub(crate) unit: Unit,
@@ -86,6 +86,8 @@ impl Measure {
 }
 
 use std::ops::Add;
+
+use serde::{Serialize, Deserialize};
 
 impl Add for &Measure {
     type Output = Measure;

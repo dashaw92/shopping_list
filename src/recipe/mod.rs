@@ -1,23 +1,24 @@
 #![allow(dead_code)]
 
-use self::unit::{Measure, Unit};
+use serde::{Serialize, Deserialize};
+
+use self::unit::Measure;
 pub mod unit;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Recipe {
     pub(crate) name: String,
     pub(crate) ingredients: Vec<Ingredient>,
     pub(crate) tags: Option<Vec<Tag>>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct Ingredient {
     pub(crate) name: String,
     pub(crate) measure: Measure,
-    pub(crate) primary_unit: Unit,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq)]
+#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Tag {
     Culture(String),
     Meat(String),
@@ -26,7 +27,7 @@ pub enum Tag {
     Other(String),
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum MealType {
     Breakfast,
     Lunch,
@@ -35,11 +36,12 @@ pub enum MealType {
     Snack,
 }
 
-#[derive(Debug, Copy, Clone, Eq, PartialEq)]
+#[derive(Debug, Copy, Clone, Eq, PartialEq, Serialize, Deserialize)]
 pub enum PrepType {
     Cold,
     Bake,
     Fry,
     Microwave,
     Boil,
+    Stovetop,
 }

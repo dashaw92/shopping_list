@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use crate::recipe::{Recipe, unit::Measure};
+use crate::recipe::{Recipe, unit::{Measure, Unit}};
 
 type IngredientMap = HashMap<String, Measure>;
 type Associations = HashMap<String, HashSet<String>>;
@@ -17,7 +17,7 @@ pub fn generate_list(list: Vec<Recipe>) -> ShoppingList {
                 //primary unit of measure for it.
                 let current = ingredients
                     .entry(ingredient.name.clone())
-                    .or_insert(Measure::new(ingredient.primary_unit));
+                    .or_insert(Measure::new(Unit::Pinch));
 
                 //Always promote to the next highest unit, if needed.
                 if current.unit >= ingredient.measure.unit {
