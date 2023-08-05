@@ -41,6 +41,7 @@ fn main() {
     }
 
     println!("Loaded {} recipes from disk!", app.recipes().len());
-    ui::run(app);
+    let mut ui = ui::Controller::new(app);
+    ui.run();
 }
 

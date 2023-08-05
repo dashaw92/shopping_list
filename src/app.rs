@@ -105,7 +105,11 @@ impl AppState {
             .cloned()
     }
 
-    pub fn select(&mut self, recipe: Recipe) {
+    pub fn select(&mut self, recipe: String) {
+        let Some(recipe) = self.recipe_by_name(&recipe) else {
+            return
+        };
+
         if self.selected.contains(&recipe) {
             return
         }
@@ -113,7 +117,11 @@ impl AppState {
         self.selected.push(recipe);
     }
 
-    pub fn unselect(&mut self, recipe: Recipe) {
+    pub fn unselect(&mut self, recipe: String) {
+        let Some(recipe) = self.recipe_by_name(&recipe) else {
+            return
+        };
+
         let Some(idx) = self.selected.iter().position(|other| other.name == recipe.name) else {
             return;
         };
@@ -123,6 +131,10 @@ impl AppState {
 
     pub fn recipes(&self) -> &[Recipe] {
         &self.recipes
+    }
+
+    pub fn is_selected(&self, name: &str) -> bool {
+        self.selected.iter().find(|recipe| recipe.name == name).is_some()
     }
 }
 
