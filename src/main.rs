@@ -8,6 +8,7 @@ use crate::{recipe::{Ingredient, unit::{Measure, Unit}, Tag, MealType, PrepType}
 mod app;
 mod recipe;
 mod shopping_list;
+mod ui;
 
 fn main() {
     let mut app = AppState::load_from_dir("recipes");
@@ -40,5 +41,6 @@ fn main() {
     }
 
     println!("Loaded {} recipes from disk!", app.recipes().len());
+    ui::run(app);
 }
 

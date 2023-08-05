@@ -2,6 +2,7 @@ use std::{path::{Path, PathBuf}, error::Error};
 
 use crate::recipe::Recipe;
 
+#[derive(Clone)]
 pub struct AppState {
     base_dir: PathBuf,
     recipes: Vec<Recipe>,
@@ -40,25 +41,32 @@ impl AppState {
             .filter_map(|entry| entry.ok())
             .map(|entry| entry.path())
             .filter(|file| file.is_file())
-            .filter_map(|recipe| app.load(recipe.as_path()).ok())
-            .for_each(|recipe| println!("Loaded recipe \"{recipe}\"."));
+            .filter_map(|recipe| app.load(recipe.as_path()).err())
+            .for_each(|(name, err)| eprintln!("Error loading recipe \"{name}\": {err}"));
 
         app
     }
 
-    fn load<P: AsRef<Path>>(&mut self, path: P) -> Result<String, Box<dyn Error>> {
+    fn load<P: AsRef<Path> + Copy>(&mut self, path: P) -> Result<(), (String, Box<dyn Error>)> {
         use std::fs::read_to_string;
 
         let recipe: Recipe = match read_to_string(path)
             .map(|st| serde_json::from_str(&st))
-            .expect("Failed to load the recipe from file {path}.") 
+            .expect("Failed to load a recipe file.") 
         {
                 Ok(recipe) => recipe, 
-                Err(e) => return Err(Box::new(e)),
+                Err(e) => {
+                    let name = path.as_ref().file_name()
+                        .and_then(|ostr| ostr.to_str())
+                        .map(ToOwned::to_owned)
+                        .unwrap_or(format!("{}", path.as_ref().display()));
+                    return Err((name, Box::new(e)))
+                },
         };
 
-        self.add_recipe(recipe.clone());
-        Ok(recipe.name)
+        println!("Loaded recipe \"{}\".", &recipe.name);
+        self.add_recipe(recipe);
+        Ok(())
     }
 
     pub fn add_recipe(&mut self, recipe: Recipe) {
