@@ -9,10 +9,9 @@ pub fn generate_list(list: &[Recipe]) -> ShoppingList {
     let mut ingredients = IngredientMap::new();
     let mut associations = Associations::new();
 
-    list.into_iter()
+    list.iter()
         .for_each(|recipe| {
             for ingredient in &recipe.ingredients {
-
                 //Get the current entry for this ingredient, or insert an empty default using the
                 //primary unit of measure for it.
                 let current = ingredients

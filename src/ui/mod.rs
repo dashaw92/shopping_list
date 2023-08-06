@@ -10,7 +10,7 @@ use cursive::{
     CursiveRunnable, CursiveRunner, With, Cursive,
 };
 
-use crate::{app::AppState, shopping_list};
+use crate::{app::AppState, shopping_list::{self, ShoppingList}};
 
 use std::sync::mpsc;
 
@@ -68,8 +68,9 @@ fn build_ui(ui: &mut Ui, list: Vec<String>) {
     )
     .title("Recipes")
     .title_position(HAlign::Left)
-    .button("Generate", move |_s| {
+    .button("Generate", move |s| {
         let _ = ctrl_tx.send(ControllerMessage::GenerateList);
+        s.quit();
     });
     ui.siv.add_layer(recipe_list);
 }
@@ -128,22 +129,21 @@ impl Controller {
         }
     }
 
-    pub fn run(&mut self) {
-        while self.ui.step() {
+    pub fn run(&mut self) -> ShoppingList {
+        loop {
+            self.ui.step();
             while let Some(msg) = self.rx.try_iter().next() {
                 match msg {
                     ControllerMessage::UpdateSelected(recipe, selected) => {
                         if selected {
-                            println!("Hello?");
                             self.state.select(recipe);
                         } else {
                             self.state.unselect(recipe);
                         }
                     },
                     ControllerMessage::GenerateList => {
-                        let list = shopping_list::generate_list(&self.state.selected());
-                        println!("");
-                        dbg!(list);
+                        let list = shopping_list::generate_list(self.state.selected());
+                        return list
                     }
                 }
             }

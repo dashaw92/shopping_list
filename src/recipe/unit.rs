@@ -59,7 +59,7 @@ impl Measure {
     }
  
     pub fn convert_to(&self, unit: Unit) -> Measure {
-        if self.unit == unit || self.unit == Unit::Whole {
+        if self.unit == unit || self.unit == Unit::Whole || unit == Unit::Whole {
             return self.clone();
         }
 

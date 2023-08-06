@@ -109,7 +109,7 @@ impl AppState {
         &self.recipes
     }
 
-    pub fn selected(&self) -> Vec<Recipe> {
-        self.selected.to_vec()
+    pub fn selected(&self) -> &[Recipe] {
+        &self.selected
     }
 }
