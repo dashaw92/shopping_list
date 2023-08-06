@@ -5,13 +5,13 @@ use crate::recipe::{Recipe, unit::{Measure, Unit}};
 type IngredientMap = HashMap<String, Measure>;
 type Associations = HashMap<String, HashSet<String>>;
 
-pub fn generate_list(list: Vec<Recipe>) -> ShoppingList {
+pub fn generate_list(list: &[Recipe]) -> ShoppingList {
     let mut ingredients = IngredientMap::new();
     let mut associations = Associations::new();
 
     list.into_iter()
         .for_each(|recipe| {
-            for ingredient in recipe.ingredients {
+            for ingredient in &recipe.ingredients {
 
                 //Get the current entry for this ingredient, or insert an empty default using the
                 //primary unit of measure for it.
@@ -28,14 +28,15 @@ pub fn generate_list(list: Vec<Recipe>) -> ShoppingList {
                 }
 
                 //And finally, associate the ingredient with the recipe
-                associations.entry(ingredient.name).or_insert(HashSet::new()).insert(recipe.name.clone());
+                associations.entry(ingredient.name.clone()).or_insert(HashSet::new()).insert(recipe.name.clone());
             }
         });
 
-    ShoppingList { ingredients, associations }
+    ShoppingList { _ingredients: ingredients, _associations: associations }
 }
 
+#[derive(Debug)]
 pub struct ShoppingList {
-    ingredients: IngredientMap,
-    associations: Associations,
+    _ingredients: IngredientMap,
+    _associations: Associations,
 }

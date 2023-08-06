@@ -10,7 +10,7 @@ use cursive::{
     CursiveRunnable, CursiveRunner, With, Cursive,
 };
 
-use crate::app::AppState;
+use crate::{app::AppState, shopping_list};
 
 use std::sync::mpsc;
 
@@ -23,6 +23,8 @@ by dashaw92 - August 2023
 ";
 
 fn build_ui(ui: &mut Ui, list: Vec<String>) {
+    let ctrl_tx = ui.controller.clone();
+
     ui.siv.with_theme(|theme| {
         use cursive::theme::BaseColor;
         use cursive::theme::PaletteColor;
@@ -48,7 +50,7 @@ fn build_ui(ui: &mut Ui, list: Vec<String>) {
         ListView::new()
             .with(|view| {
                 for item in list {
-                    let ctrl = ui.controller.clone();
+                    let ctrl = ctrl_tx.clone();
                     let item_closure = item.clone();
                     let check = Checkbox::new()
                         .with_checked(false)
@@ -66,31 +68,26 @@ fn build_ui(ui: &mut Ui, list: Vec<String>) {
     )
     .title("Recipes")
     .title_position(HAlign::Left)
-    .button("Generate", |_b| {});
+    .button("Generate", move |_s| {
+        let _ = ctrl_tx.send(ControllerMessage::GenerateList);
+    });
     ui.siv.add_layer(recipe_list);
 }
 
-enum UiMessage {}
-
 enum ControllerMessage {
     UpdateSelected(String, bool),
+    GenerateList,
 }
 
 struct Ui {
     siv: CursiveRunner<CursiveRunnable>,
-    ui_rx: mpsc::Receiver<UiMessage>,
-    ui_tx: mpsc::Sender<UiMessage>,
     controller: mpsc::Sender<ControllerMessage>,
 }
 
 impl Ui {
     fn new(tx: mpsc::Sender<ControllerMessage>, list: Vec<String>) -> Ui {
-        let (ui_tx, ui_rx) = mpsc::channel();
-
         let mut ui = Ui {
             siv: cursive::default().into_runner(),
-            ui_tx,
-            ui_rx,
             controller: tx,
         };
 
@@ -101,10 +98,6 @@ impl Ui {
     fn step(&mut self) -> bool {
         if !self.siv.is_running() {
             return false;
-        }
-
-        while let Some(msg) = self.ui_rx.try_iter().next() {
-            match msg {}
         }
 
         self.siv.step();
@@ -127,6 +120,7 @@ impl Controller {
             .iter()
             .map(|recipe| recipe.name.clone())
             .collect();
+        
         Controller {
             ui: Ui::new(tx.clone(), list),
             rx,
@@ -140,10 +134,16 @@ impl Controller {
                 match msg {
                     ControllerMessage::UpdateSelected(recipe, selected) => {
                         if selected {
+                            println!("Hello?");
                             self.state.select(recipe);
                         } else {
                             self.state.unselect(recipe);
                         }
+                    },
+                    ControllerMessage::GenerateList => {
+                        let list = shopping_list::generate_list(&self.state.selected());
+                        println!("");
+                        dbg!(list);
                     }
                 }
             }

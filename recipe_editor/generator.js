@@ -6,7 +6,7 @@ addEventListener("load", () => {
     document.getElementById("newRowBtn").addEventListener("click", addRow)
     //When <Enter> is pressed, add another row as well
     document.addEventListener("keyup", (event) => {
-        if(event.code == "Enter") addRow()
+        if(event.code == "Enter") addRow(false)
     })
     //Exports the form's data to JSON, ready to be used in the program
     document.getElementById("generateRecipeBtn").addEventListener("click", generateRecipe)
@@ -22,7 +22,7 @@ const units = {
     "Whole": "Whole"
 }
 
-function addRow() {
+function addRow(focusInput) {
     let table = document.getElementById("ingredients")
 
     //Generate a "unique" ID for the new row. Used to group elements for programmatic access
@@ -36,6 +36,7 @@ function addRow() {
     let ingNameInput = document.createElement("input")
     ingNameInput.id = `ingredient|${idx}`
     ingNameInput.type = "text"
+    ingNameInput.tabIndex = 0
     ingName.appendChild(ingNameInput)
 
     //Ingredient quantity field
@@ -43,12 +44,14 @@ function addRow() {
     let ingAmountInput = document.createElement("input")
     ingAmountInput.id = `quantity|${idx}`
     ingAmountInput.type = "text"
+    ingAmountInput.tabIndex = 0
     ingAmount.appendChild(ingAmountInput)
 
     //Units of measurement selection field
     let unit = row.insertCell()
     let unitInput = document.createElement("select")
     unitInput.id = `unit|${idx}`
+    unitInput.tabIndex = 0
     for (const unit in units) {
         let opt = document.createElement("option")
         opt.setAttribute("value", unit)
@@ -56,6 +59,19 @@ function addRow() {
         opt.appendChild(text)
         unitInput.appendChild(opt)
     }
+    //When the user presses "<Tab>" on this field, check
+    //if this is the last row in the table. If it is,
+    //add another row and give focus to the new ingredient name field.
+    unitInput.addEventListener("blur", (event) => {
+        let table = document.getElementById("ingredients")
+        let lastRow = table.rows[table.rows.length - 1]
+        if(lastRow == null) return
+
+        let id = lastRow.id
+        if(id.indexOf(idx) == -1) return
+
+        addRow(true)
+    })
     unit.appendChild(unitInput)
 
     let deleteRow = row.insertCell()
@@ -67,6 +83,10 @@ function addRow() {
         removeRow(idx)
     })
     deleteRow.appendChild(deleteRowBtn)
+
+    if(focusInput) {
+        ingNameInput.focus()
+    }
 }
 
 //Delete a row from the table using the generated ID to find the specific row
@@ -125,7 +145,7 @@ function generateRecipe() {
 //https://stackoverflow.com/a/34156339
 function download(recipe) {
     let a = document.createElement("a")
-    let file = new Blob([JSON.stringify(recipe)], {type: "text/plain"})
+    let file = new Blob([JSON.stringify(recipe)], {type: "text/plain;charset=utf-8"})
     a.href = URL.createObjectURL(file)
     a.download = `${recipe.name}.json`
     a.click()

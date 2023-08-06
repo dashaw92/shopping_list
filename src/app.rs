@@ -1,10 +1,9 @@
-use std::{path::{Path, PathBuf}, error::Error};
+use std::{path::Path, error::Error};
 
 use crate::recipe::Recipe;
 
 #[derive(Clone)]
 pub struct AppState {
-    base_dir: PathBuf,
     recipes: Vec<Recipe>,
     selected: Vec<Recipe>,
 }
@@ -32,7 +31,6 @@ impl AppState {
         };
 
         let mut app = AppState {
-            base_dir: path.as_ref().to_path_buf(),
             recipes: vec![],
             selected: vec![],
         };
@@ -64,7 +62,7 @@ impl AppState {
                 },
         };
 
-        println!("Loaded recipe \"{}\".", &recipe.name);
+        // println!("Loaded recipe \"{}\".", &recipe.name);
         self.add_recipe(recipe);
         Ok(())
     }
@@ -111,7 +109,7 @@ impl AppState {
         &self.recipes
     }
 
-    pub fn is_selected(&self, name: &str) -> bool {
-        self.selected.iter().find(|recipe| recipe.name == name).is_some()
+    pub fn selected(&self) -> Vec<Recipe> {
+        self.selected.to_vec()
     }
 }
