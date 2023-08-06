@@ -4,6 +4,10 @@ addEventListener("load", () => {
 
     //Appends a new row to the table
     document.getElementById("newRowBtn").addEventListener("click", addRow)
+    //When <Enter> is pressed, add another row as well
+    document.addEventListener("keyup", (event) => {
+        if(event.code == "Enter") addRow()
+    })
     //Exports the form's data to JSON, ready to be used in the program
     document.getElementById("generateRecipeBtn").addEventListener("click", generateRecipe)
 })
