@@ -117,7 +117,10 @@ impl Report {
         }
     }
 
-    fn write_to(&mut self, path: &str) {
+    fn write_to(&mut self, file: &str) {
+        let mut path = std::env::current_dir().unwrap();
+        path.push(file);
+
         let Ok(mut output) = OpenOptions::new().write(true).create(true).truncate(true).open(path) else {
             return
         };

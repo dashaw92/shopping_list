@@ -80,6 +80,9 @@ fn build_ui(ui: &mut Ui, list: Vec<String>) {
 }
 
 fn render_export(siv: &mut Cursive, ctrl: mpsc::Sender<ControllerMessage>) {
+    let path = std::env::current_dir().unwrap();
+    let path = path.to_str().map(ToOwned::to_owned).unwrap_or("".into());
+
     siv.add_layer(
         Dialog::around(
             LinearLayout::new(Orientation::Vertical)
@@ -87,6 +90,7 @@ fn render_export(siv: &mut Cursive, ctrl: mpsc::Sender<ControllerMessage>) {
                 .child(ListView::new()
                     .delimiter()
                     .child("File name", EditView::new().filler(" ").with_name("filename"))
+                    .child("CWD", TextView::new(path))
                 ),
         )
         .title("Save as...")

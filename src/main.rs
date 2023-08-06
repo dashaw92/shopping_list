@@ -6,7 +6,11 @@ mod shopping_list;
 mod ui;
 
 fn main() {
-    let app = AppState::load_from_dir("recipes");
+    let mut recipes = std::env::current_exe().unwrap();
+    recipes.pop();
+    recipes.push("recipes");
+
+    let app = AppState::load_from_dir(recipes);
     println!("Loaded {} recipes from disk!", app.recipes().len());
 
     let mut ui = ui::Controller::new(app);
