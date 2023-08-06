@@ -9,10 +9,6 @@ fn main() {
     let app = AppState::load_from_dir("recipes");
     println!("Loaded {} recipes from disk!", app.recipes().len());
 
-    let list = {
-        let mut ui = ui::Controller::new(app);
-        ui.run()
-    };
-    
-    dbg!(list);
+    let mut ui = ui::Controller::new(app);
+    ui.run();
 }

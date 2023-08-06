@@ -18,6 +18,10 @@ input[type=text] {
 }
 
 select {
+    border-style: none;
+}
+
+select {
     background-color: rgb(161, 161, 206);
     font-family: monospace;
 }

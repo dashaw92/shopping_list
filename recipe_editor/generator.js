@@ -109,13 +109,13 @@ function removeRow(idx) {
 //Read the table's rows and export to JSON!
 function generateRecipe() {
     let table = document.getElementById("ingredients")
-    // if(table.rows.length == 2) return
-
-    let recipe = {}
+    
     let name = document.getElementById("recipeName").value
     if(name == null || name.trim() == "") return
-    recipe["name"] = name
-    let ingredients = []
+    let recipe = {
+        "name": name,
+        "ingredients": []
+    }
     
     for(const row of table.rows) {
         if(!row.id.startsWith("entry")) continue
@@ -132,13 +132,12 @@ function generateRecipe() {
             "unit": ingUnit,
         }
 
-        ingredients.push({
+        recipe.ingredients.push({
             "name": ingName,
             "measure": measure
         })
     }
 
-    recipe["ingredients"] = ingredients
     download(recipe)
 }
 
