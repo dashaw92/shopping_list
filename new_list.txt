@@ -1,0 +1,59 @@
++-----------------------------+
+| My Shopping List            |
++-----------------------------+
+| [_] Frank's Seasoning       |
+|     * 1 Ounces              |
+| [_] Frank's Red Hot Sauce   |
+|     * 1 Tablespoons         |
+| [_] Cilantro                |
+|     * 1 Ounces              |
+| [_] Southwest Spice Blend   |
+|     * 2 Tablespoons         |
+| [_] Hamburger Bun           |
+|     * 2 Whole               |
+| [_] Lime                    |
+|     * 1 Whole               |
+| [_] Crispy Fried Onion      |
+|     * 1 Cups                |
+| [_] Tex Mex Paste           |
+|     * 1 Whole               |
+| [_] Garlic Powder           |
+|     * 1 Teaspoons           |
+| [_] Ground Beef             |
+|     * 10 Ounces             |
+| [_] Ground Pork             |
+|     * 10 Ounces             |
+| [_] Tortillas               |
+|     * 6 Whole               |
+| [_] Chili Pepper            |
+|     * 1 Whole               |
+| [_] Potato                  |
+|     * 12 Ounces             |
+| [_] Green Pepper            |
+|     * 1 Whole               |
+| [_] Mayonnaise              |
+|     * 2 Tablespoons         |
+| [_] Red Cabbage             |
+|     * 4 Ounces              |
+| [_] Ranch Dressing          |
+|     * 2 Ounces              |
+| [_] Black Beans             |
+|     * 14 Ounces             |
+| [_] Scallion                |
+|     * 2 Whole               |
+| [_] Tomato                  |
+|     * 1 Whole               |
+| [_] Tortilla                |
+|     * 6 Whole               |
+| [_] Monterey Jack, Shredded |
+|     * 1 Cups                |
+| [_] Sour Cream              |
+|     * 5 Tablespoons         |
+| [_] Yellow Onion            |
+|     * 1 Whole               |
++-----------------------------+
+| Recipes:                    |
+|  - Sante Fe Pork Tacos      |
+|  - Salsa Verde Enchiladas   |
+|  - Firehouse Cheeseburgers  |
++-----------------------------+

@@ -73,7 +73,7 @@ impl ShoppingList {
 
 struct Report {
     buf: Vec<String>,
-    lines: Vec<usize>,            
+    lines: Vec<usize>,
     lborder: char,
     rborder: char,
     tborder: char,
