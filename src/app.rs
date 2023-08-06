@@ -77,28 +77,6 @@ impl AppState {
         self.recipes.push(recipe);
     }
 
-    fn save(&self) {
-        use std::fs::OpenOptions;
-        use std::io::Write;
-
-        self.recipes.iter()
-            .for_each(|recipe| {
-                let mut base = self.base_dir.clone();
-                base.push(format!("{}.json", recipe.name));
-
-                let mut file = OpenOptions::new()
-                    .create(true)
-                    .write(true)
-                    .open(base.as_path())
-                    .expect("Failed to open recipe file for saving.");
-
-                serde_json::to_string_pretty(recipe)
-                    .map(|json| file.write_all(json.as_bytes()))
-                    .expect("Failed to serialize recipe.")
-                    .expect("Failed to save recipe to disk.");
-            });
-    }
-
     pub fn recipe_by_name(&self, name: &str) -> Option<Recipe> {
         self.recipes.iter()
             .find(|recipe| recipe.name == name)
@@ -135,11 +113,5 @@ impl AppState {
 
     pub fn is_selected(&self, name: &str) -> bool {
         self.selected.iter().find(|recipe| recipe.name == name).is_some()
-    }
-}
-
-impl Drop for AppState {
-    fn drop(&mut self) {
-        self.save();
     }
 }

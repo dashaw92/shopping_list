@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="author" content="dashaw92" />
+        <title>Shopping List - Recipe Editor</title>
+        <script type="text/javascript" src="generator.js"></script>
+        <link rel="stylesheet" href="styles.css" />
+    </head>
+    <body>
+        <form autocomplete="off">
+            <fieldset>
+                <legend>New Recipe </legend>
+                <label for="recipeName">Recipe Name:</label>
+                <input type="text" id="recipeName" name="recipeName" /><br /><br />
+                <input type="button" id="newRowBtn" value="[+ Ingredient]" />
+                <input type="button" id="generateRecipeBtn" value="&lt;Generate&gt;" /><br /><br />
+                <div class="scroll">
+                    <table id="ingredients">
+                        <tr>
+                            <th>Ingredient</th>
+                            <th>Amount</th>
+                            <th>Unit of Measure</th>
+                        </tr>
+                    </table>
+                </div><br /><br />
+            </fieldset>
+        </form>
+    </body>
+</html>

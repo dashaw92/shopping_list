@@ -2,11 +2,12 @@
 // https://cafbit.com/post/cursive_writing_terminal_applications_in_rust/
 
 use cursive::{
+    align::HAlign,
     event::Key,
     menu::Tree,
-    view::{Scrollable, Nameable},
-    views::{Dialog, ListView, Checkbox},
-    CursiveRunner, CursiveRunnable, align::HAlign, With,
+    view::{Nameable, Scrollable},
+    views::{Checkbox, Dialog, ListView},
+    CursiveRunnable, CursiveRunner, With, Cursive,
 };
 
 use crate::app::AppState;
@@ -22,12 +23,21 @@ by dashaw92 - August 2023
 ";
 
 fn build_ui(ui: &mut Ui, list: Vec<String>) {
-    ui.siv.menubar()
-        .add_subtree("File", Tree::new().leaf("Quit", |s| s.quit()))
+    ui.siv.with_theme(|theme| {
+        use cursive::theme::BaseColor;
+        use cursive::theme::PaletteColor;
+
+        theme.palette[PaletteColor::Background] = BaseColor::Green.dark();
+        theme.palette[PaletteColor::Shadow] = BaseColor::Black.dark();
+    });
+
+    ui.siv
+        .menubar()
+        .add_subtree("File", Tree::new().leaf("Quit", Cursive::quit))
         .add_subtree(
             "About",
             Tree::new()
-                .leaf("Help", |s| s.add_layer(Dialog::info(HELP)))
+                .leaf("Help", |s| s.add_layer(Dialog::info(HELP).title("Help")))
                 .delimiter()
                 .leaf("About", |s| s.add_layer(Dialog::info(ABOUT).title("About"))),
         );
@@ -40,19 +50,23 @@ fn build_ui(ui: &mut Ui, list: Vec<String>) {
                 for item in list {
                     let ctrl = ui.controller.clone();
                     let item_closure = item.clone();
-                    let check = Checkbox::new().with_checked(false)
-                    .on_change(move |_, state| {
-                        let _ = ctrl.send(ControllerMessage::UpdateSelected(item_closure.clone(), state));
-                    });
+                    let check = Checkbox::new()
+                        .with_checked(false)
+                        .on_change(move |_, state| {
+                            let _ = ctrl.send(ControllerMessage::UpdateSelected(
+                                item_closure.clone(),
+                                state,
+                            ));
+                        });
                     view.add_child(&item, check);
                 }
             })
             .with_name("list")
-            .scrollable()
+            .scrollable(),
     )
-        .title("Recipes")
-        .title_position(HAlign::Left)
-        .button("Generate", |_b| {});
+    .title("Recipes")
+    .title_position(HAlign::Left)
+    .button("Generate", |_b| {});
     ui.siv.add_layer(recipe_list);
 }
 
@@ -86,7 +100,7 @@ impl Ui {
 
     fn step(&mut self) -> bool {
         if !self.siv.is_running() {
-            return false
+            return false;
         }
 
         while let Some(msg) = self.ui_rx.try_iter().next() {
@@ -107,8 +121,10 @@ pub struct Controller {
 impl Controller {
     pub fn new(state: AppState) -> Controller {
         let (tx, rx) = mpsc::channel();
-        
-        let list = state.recipes().iter()
+
+        let list = state
+            .recipes()
+            .iter()
             .map(|recipe| recipe.name.clone())
             .collect();
         Controller {

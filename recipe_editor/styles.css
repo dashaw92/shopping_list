@@ -1,0 +1,57 @@
+body {
+    background-color: rgb(0, 54, 0);
+    font-family: monospace;
+    padding-top: 40px;
+}
+
+input {
+    font-family: monospace;
+}
+
+input:focus {
+    outline: 0;
+}
+
+input[type=text] {
+    background-color: rgb(161, 161, 206);
+    border-style: none;
+}
+
+select {
+    background-color: rgb(161, 161, 206);
+    font-family: monospace;
+}
+
+form {
+    background-color: #bcbcbc;
+    box-shadow: 16px 16px 0px 0px #000;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 5px;
+    max-height: 75vh;
+    overflow-y: auto;
+}
+
+
+legend {
+    color: rgb(117, 47, 0);
+    font-size: x-large;
+    font-weight: bold;
+}
+
+fieldset {
+    border-color: black;
+    color: black;
+    padding-left: 20px;
+    padding-right: 20px;
+}
+/* 
+table, th, td {
+} */
+
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 5px;
+}
