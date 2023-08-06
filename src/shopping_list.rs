@@ -1,4 +1,4 @@
-use std::{collections::{HashMap, HashSet}, fs::OpenOptions, io::Write};
+use std::{collections::{HashMap, HashSet}, fs::OpenOptions, io::Write, path::PathBuf};
 
 use crate::recipe::{Recipe, unit::Measure};
 
@@ -41,8 +41,13 @@ pub struct ShoppingList {
     associations: Associations,
 }
 
+pub enum ExportFormat {
+    Print,
+    Notes,
+}
+
 impl ShoppingList {
-    pub fn render_to(&self, path: &str) {
+    pub fn render_to(&self, path: &str, name: &str, format: ExportFormat) {
         if self.ingredients.is_empty() {
             return
         }
@@ -51,8 +56,17 @@ impl ShoppingList {
             .flat_map(|set| set.iter())
             .map(Clone::clone)
             .collect();
+
         let recipes: Vec<String> = recipes.into_iter().collect();
 
+        let mut report = match format {
+            ExportFormat::Print => self.print_report(&recipes),
+            ExportFormat::Notes => self.notes_report(&recipes),
+        };
+        report.write_to(path, name);
+    }
+
+    fn print_report(&self, recipes: &[String]) -> Report {
         let mut report = Report::default();
         report.line();
         report.w("My Shopping List");
@@ -67,7 +81,28 @@ impl ShoppingList {
             report.w(format!(" - {recipe}"));
         }
         report.line();
-        report.write_to(path);
+        report
+    }
+
+    fn notes_report(&self, recipes: &[String]) -> Report {
+        let mut report = Report {
+            border: false,
+            ..Default::default()
+        };
+
+        report.w("My Shopping List");
+        report.line();
+        for (ingredient, measure) in &self.ingredients {
+            report.w(format!("{ingredient}: {} {:?}", measure.quantity.ceil(), measure.unit));
+        }
+
+        report.w("");
+        report.w("Recipes:");
+        for recipe in recipes {
+            report.w(format!(" - {recipe}"));
+        }
+        
+        report
     }
 }
 
@@ -78,6 +113,7 @@ struct Report {
     rborder: char,
     tborder: char,
     cborder: char,
+    border: bool,
 }
 
 impl Default for Report {
@@ -89,6 +125,7 @@ impl Default for Report {
             rborder: '|',
             tborder: '-',
             cborder: '+',
+            border: true,
         }
     }
 }
@@ -100,7 +137,11 @@ impl Report {
     }
 
     fn w<S: ToString>(&mut self, line: S) {
-        self.buf.push(format!("{} {}", self.lborder, line.to_string()));
+        self.buf.push(format!("{}{}", if self.border {
+            format!("{} ", self.lborder)
+        } else {
+            "".into()
+        }, line.to_string()));
     }
     
     fn render(&mut self) {
@@ -111,14 +152,20 @@ impl Report {
                 continue
             }
 
-            let line = &mut self.buf[idx];
-            let padding = max_len - line.len();
-            line.push_str(&format!("{}{}", " ".repeat(padding), self.rborder));
+            if self.border {
+                let line = &mut self.buf[idx];
+                let padding = max_len - line.len();
+                line.push_str(&format!("{}{}", " ".repeat(padding), self.rborder));
+            }
         }
     }
 
-    fn write_to(&mut self, file: &str) {
-        let mut path = std::env::current_dir().unwrap();
+    fn write_to(&mut self, path: &str, file: &str) {
+        let mut path = if path.is_empty() {
+            std::env::current_dir().unwrap()
+        } else {
+            PathBuf::from(path)
+        };
         path.push(file);
 
         let Ok(mut output) = OpenOptions::new().write(true).create(true).truncate(true).open(path) else {

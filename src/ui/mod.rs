@@ -1,17 +1,19 @@
 // MVC approach adapted from:
 // https://cafbit.com/post/cursive_writing_terminal_applications_in_rust/
 
+mod ext;
+
 use cursive::{
     align::HAlign,
     direction::{Orientation, Direction},
     event::Key,
     menu::Tree,
     view::{Nameable, Scrollable},
-    views::{Checkbox, Dialog, EditView, LinearLayout, ListView, TextView},
+    views::{Checkbox, Dialog, EditView, LinearLayout, ListView, TextView, RadioGroup},
     Cursive, CursiveRunnable, CursiveRunner, With, View,
 };
 
-use crate::{app::AppState, shopping_list};
+use crate::{app::AppState, shopping_list::{self, ExportFormat}};
 
 use std::sync::mpsc;
 
@@ -25,6 +27,10 @@ by dashaw92 - August 2023
 
 const SAVE: &str = "Choose where to save the shopping list to.
 Reports are in plaintext format (txt).
+The format option determines the layout of the report.
+Reports in \"Print\" format are ready to be printed.
+Reports in \"iOS Notes\" format can be easily imported into
+the iOS Notes app and converted to a checklist.
 ";
 
 fn build_ui(ui: &mut Ui, list: Vec<String>) {
@@ -83,28 +89,45 @@ fn render_export(siv: &mut Cursive, ctrl: mpsc::Sender<ControllerMessage>) {
     let path = std::env::current_dir().unwrap();
     let path = path.to_str().map(ToOwned::to_owned).unwrap_or("".into());
 
+    let mut format_group = RadioGroup::new();
+
     siv.add_layer(
         Dialog::around(
             LinearLayout::new(Orientation::Vertical)
                 .child(TextView::new(SAVE))
                 .child(ListView::new()
                     .delimiter()
-                    .child("File name", EditView::new().filler(" ").with_name("filename"))
-                    .child("CWD", TextView::new(path))
+                    .child("File name", ext::clearable_edit("filename", ""))
+                    .child("CWD", ext::clearable_edit("path", &path))
+                    .child(
+                        "Format", 
+                        LinearLayout::new(Orientation::Vertical)
+                            .child(format_group.button_str("Print"))
+                            .child(format_group.button_str("iOS Notes").selected())
+                    )
                 ),
         )
         .title("Save as...")
-        .dismiss_button("Cancel")
         .button("Save", move |s| {
             let name = s.find_name::<EditView>("filename").unwrap().get_content();
-            if name.trim().is_empty() {
+            let path = s.find_name::<EditView>("path").unwrap().get_content();
+
+            let name = name.trim();
+            let path = path.trim();
+            if name.is_empty() {
                 return;
             }
 
+            let format = match format_group.selected_id() {
+                0 => ExportFormat::Print,
+                1 => ExportFormat::Notes,
+                _ => unreachable!("Was another export format added?"),
+            };
             s.pop_layer();
 
-            let _ = ctrl.send(ControllerMessage::ExportList(name.to_string()));
-        }),
+            let _ = ctrl.send(ControllerMessage::ExportList(path.to_string(), name.to_string(), format));
+        })
+        .dismiss_button("Cancel"),
     );
 
     if let Some(mut view) = siv.find_name::<EditView>("filename") {
@@ -116,7 +139,7 @@ fn render_export(siv: &mut Cursive, ctrl: mpsc::Sender<ControllerMessage>) {
 
 enum ControllerMessage {
     UpdateSelected(String, bool),
-    ExportList(String),
+    ExportList(String, String, ExportFormat),
 }
 
 struct Ui {
@@ -179,9 +202,9 @@ impl Controller {
                             self.state.unselect(recipe);
                         }
                     }
-                    ControllerMessage::ExportList(path) => {
+                    ControllerMessage::ExportList(path, name, format) => {
                         let list = shopping_list::generate_list(self.state.selected());
-                        list.render_to(&path);
+                        list.render_to(&path, &name, format);
                     }
                 }
             }
