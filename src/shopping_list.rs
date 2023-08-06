@@ -1,6 +1,6 @@
-use std::collections::{HashMap, HashSet};
+use std::{collections::{HashMap, HashSet}, fs::OpenOptions, io::Write};
 
-use crate::recipe::{Recipe, unit::{Measure, Unit}};
+use crate::recipe::{Recipe, unit::Measure};
 
 type IngredientMap = HashMap<String, Measure>;
 type Associations = HashMap<String, HashSet<String>>;
@@ -16,7 +16,7 @@ pub fn generate_list(list: &[Recipe]) -> ShoppingList {
                 //primary unit of measure for it.
                 let current = ingredients
                     .entry(ingredient.name.clone())
-                    .or_insert(Measure::new(Unit::Pinch));
+                    .or_insert(Measure::new(ingredient.measure.unit));
 
                 //Always promote to the next highest unit, if needed.
                 if current.unit >= ingredient.measure.unit {
@@ -31,11 +31,99 @@ pub fn generate_list(list: &[Recipe]) -> ShoppingList {
             }
         });
 
-    ShoppingList { _ingredients: ingredients, _associations: associations }
+    ShoppingList { ingredients, associations }
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 pub struct ShoppingList {
-    _ingredients: IngredientMap,
-    _associations: Associations,
+    ingredients: IngredientMap,
+    associations: Associations,
+}
+
+impl ShoppingList {
+    pub fn render_to(&self, path: &str) {
+        if self.ingredients.is_empty() {
+            return
+        }
+
+        let recipes: HashSet<String> = self.associations.values()
+            .flat_map(|set| set.iter())
+            .map(Clone::clone)
+            .collect();
+        let recipes: Vec<String> = recipes.into_iter().collect();
+
+        let mut report = Report::default();
+        report.line();
+        report.w("My Shopping List");
+        report.line();
+        for (ingredient, measure) in &self.ingredients {
+            report.w(format!("[_] {ingredient}"));
+            report.w(format!("    * {} {:?}", measure.quantity.ceil(), measure.unit));
+        }
+        report.line();
+        report.w("Recipes:");
+        for recipe in recipes {
+            report.w(format!(" - {recipe}"));
+        }
+        report.line();
+        report.write_to(path);
+    }
+}
+
+struct Report {
+    buf: Vec<String>,
+    lines: Vec<usize>,            
+    lborder: char,
+    rborder: char,
+    tborder: char,
+    cborder: char,
+}
+
+impl Default for Report {
+    fn default() -> Self {
+        Report {
+            buf: Vec::new(),
+            lines: Vec::new(),
+            lborder: '|',
+            rborder: '|',
+            tborder: '-',
+            cborder: '+',
+        }
+    }
+}
+
+impl Report {
+    fn line(&mut self) {
+        self.w("");
+        self.lines.push(self.buf.len() - 1);
+    }
+
+    fn w<S: ToString>(&mut self, line: S) {
+        self.buf.push(format!("{} {}", self.lborder, line.to_string()));
+    }
+    
+    fn render(&mut self) {
+        let max_len = self.buf.iter().map(String::len).max().unwrap_or(52) + 1;
+        for idx in 0..self.buf.len() {
+            if self.lines.contains(&idx) {
+                self.buf[idx] = format!("{}{}{}", self.cborder, self.tborder.to_string().repeat(max_len - 1), self.cborder);
+                continue
+            }
+
+            let line = &mut self.buf[idx];
+            let padding = max_len - line.len();
+            line.push_str(&format!("{}{}", " ".repeat(padding), self.rborder));
+        }
+    }
+
+    fn write_to(&mut self, path: &str) {
+        let Ok(mut output) = OpenOptions::new().write(true).create(true).truncate(true).open(path) else {
+            return
+        };
+
+        self.render();
+        let lines = self.buf.join("\n");
+        let _ = output.write_all(lines.as_bytes());
+    }
 }

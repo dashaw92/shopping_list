@@ -3,14 +3,15 @@
 
 use cursive::{
     align::HAlign,
+    direction::{Orientation, Direction},
     event::Key,
     menu::Tree,
     view::{Nameable, Scrollable},
-    views::{Checkbox, Dialog, ListView},
-    CursiveRunnable, CursiveRunner, With, Cursive,
+    views::{Checkbox, Dialog, EditView, LinearLayout, ListView, TextView},
+    Cursive, CursiveRunnable, CursiveRunner, With, View,
 };
 
-use crate::{app::AppState, shopping_list::{self, ShoppingList}};
+use crate::{app::AppState, shopping_list};
 
 use std::sync::mpsc;
 
@@ -20,6 +21,10 @@ guide you through the steps of exporting the generated shopping list.";
 
 const ABOUT: &str = "Shopping List Generator
 by dashaw92 - August 2023
+";
+
+const SAVE: &str = "Choose where to save the shopping list to.
+Reports are in plaintext format (txt).
 ";
 
 fn build_ui(ui: &mut Ui, list: Vec<String>) {
@@ -69,15 +74,45 @@ fn build_ui(ui: &mut Ui, list: Vec<String>) {
     .title("Recipes")
     .title_position(HAlign::Left)
     .button("Generate", move |s| {
-        let _ = ctrl_tx.send(ControllerMessage::GenerateList);
-        s.quit();
+        render_export(s, ctrl_tx.clone());
     });
     ui.siv.add_layer(recipe_list);
 }
 
+fn render_export(siv: &mut Cursive, ctrl: mpsc::Sender<ControllerMessage>) {
+    siv.add_layer(
+        Dialog::around(
+            LinearLayout::new(Orientation::Vertical)
+                .child(TextView::new(SAVE))
+                .child(ListView::new()
+                    .delimiter()
+                    .child("File name", EditView::new().filler(" ").with_name("filename"))
+                ),
+        )
+        .title("Save as...")
+        .dismiss_button("Cancel")
+        .button("Save", move |s| {
+            let name = s.find_name::<EditView>("filename").unwrap().get_content();
+            if name.trim().is_empty() {
+                return;
+            }
+
+            s.pop_layer();
+
+            let _ = ctrl.send(ControllerMessage::ExportList(name.to_string()));
+        }),
+    );
+
+    if let Some(mut view) = siv.find_name::<EditView>("filename") {
+        let _ = view.take_focus(Direction::none());
+        return
+    };
+
+}
+
 enum ControllerMessage {
     UpdateSelected(String, bool),
-    GenerateList,
+    ExportList(String),
 }
 
 struct Ui {
@@ -121,7 +156,7 @@ impl Controller {
             .iter()
             .map(|recipe| recipe.name.clone())
             .collect();
-        
+
         Controller {
             ui: Ui::new(tx.clone(), list),
             rx,
@@ -129,9 +164,8 @@ impl Controller {
         }
     }
 
-    pub fn run(&mut self) -> ShoppingList {
-        loop {
-            self.ui.step();
+    pub fn run(&mut self) {
+        while self.ui.step() {
             while let Some(msg) = self.rx.try_iter().next() {
                 match msg {
                     ControllerMessage::UpdateSelected(recipe, selected) => {
@@ -140,10 +174,10 @@ impl Controller {
                         } else {
                             self.state.unselect(recipe);
                         }
-                    },
-                    ControllerMessage::GenerateList => {
+                    }
+                    ControllerMessage::ExportList(path) => {
                         let list = shopping_list::generate_list(self.state.selected());
-                        return list
+                        list.render_to(&path);
                     }
                 }
             }
